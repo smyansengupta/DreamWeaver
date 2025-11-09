@@ -1,36 +1,112 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DreamWeaver
+
+**Turn Lesson Plans Into Learning Games in 60 Seconds**
+
+An AI-powered tool designed for K-5 elementary school teachers to create engaging educational games from hand-drawn sketches and lesson ideas—no coding required.
+
+## Features
+
+- **Curriculum-Aligned Games**: Create games that match your specific lesson plans for math, reading, science, or social studies
+- **Lightning Fast**: Generate playable games in under 60 seconds
+- **No Technical Skills Needed**: Designed specifically for teachers, not programmers
+- **Student Engagement**: Turn learning into play with games students actually want to play
+
+## Tech Stack
+
+- **Next.js 14** with App Router
+- **TypeScript** for type safety
+- **Tailwind CSS** with custom educational color palette
+- Responsive design optimized for both desktop and tablet use
+
+## Color Palette
+
+Our educational-friendly color scheme:
+
+- **Primary Blue**: Professional and trustworthy (`#0073e6`)
+- **Sunny Yellow**: Cheerful and energetic (`#ffc107`)
+- **Grass Green**: Fresh and growth-oriented (`#22c55e`)
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+- Node.js 18+ and npm
+
+### Installation
+
+1. Install dependencies:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Run the development server:
+```bash
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Build for Production
 
-## Learn More
+```bash
+npm run build
+npm start
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Project Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+dreamweaver/
+├── app/
+│   ├── page.tsx          # Main landing page
+│   ├── layout.tsx        # Root layout with metadata
+│   └── globals.css       # Global styles
+├── components/
+│   ├── Logo.tsx          # DreamWeaver logo with animation
+│   ├── Hero.tsx          # Hero section with CTA
+│   ├── ValueProps.tsx    # Three value propositions
+│   └── ExampleGallery.tsx # Showcase of example games
+└── tailwind.config.ts    # Custom theme configuration
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Components
 
-## Deploy on Vercel
+### Logo
+Animated magic wand logo with the DreamWeaver branding.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Hero
+Main call-to-action section featuring the tagline "Turn Lesson Plans Into Learning Games in 60 Seconds" with a prominent CTA button.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### ValueProps
+Three key benefits:
+- 📚 Align games to your curriculum
+- ⚡ Generate in 60 seconds
+- 🎮 Students love playing, you love the results
+
+### ExampleGallery
+Showcases three pre-made educational games:
+- **Fraction Pizza Party** (Math, Grades 3-4)
+- **Spelling Bee Adventure** (Language Arts, Grades 2-5)
+- **Ecosystem Explorer** (Science, Grades 4-5)
+
+## Design Philosophy
+
+DreamWeaver is designed to feel like a classroom tool, not a gaming platform. The interface uses:
+
+- Warm, approachable colors that evoke learning environments
+- Playful but professional animations
+- Clear hierarchy and easy navigation
+- Trust-building elements suitable for school district procurement
+
+## Future Enhancements
+
+- User authentication and dashboard
+- Actual game creation workflow
+- Hand-drawn sketch upload and AI processing
+- Game templates library
+- Progress tracking and analytics
+- Multi-user collaboration for teaching teams
+
+## License
+
+Copyright © 2024 DreamWeaver. Making learning magical for elementary students everywhere.
