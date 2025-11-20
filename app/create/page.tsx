@@ -108,7 +108,13 @@ export default function CreatePage() {
           {currentStep === 3 && (
             <Step3Settings formData={formData} updateFormData={updateFormData} />
           )}
-          {currentStep === 4 && <Step4Review formData={formData} onEdit={handleEdit} />}
+          {currentStep === 4 && (
+            <Step4Review
+              formData={formData}
+              updateFormData={updateFormData}
+              onEdit={handleEdit}
+            />
+          )}
         </div>
 
         {/* Navigation Buttons */}

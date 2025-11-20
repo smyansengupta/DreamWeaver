@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { GameFormData } from '@/types/game';
+import { GameFormData, GeneratedGame } from '@/types/game';
 
 interface GenerationProgressProps {
   formData: GameFormData;
-  onComplete: () => void;
+  onComplete: (generatedGame?: GeneratedGame) => void;
 }
 
 interface Stage {
@@ -31,6 +31,8 @@ export default function GenerationProgress({ formData, onComplete }: GenerationP
   const [currentFactIndex, setCurrentFactIndex] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [generatedGame, setGeneratedGame] = useState<GeneratedGame | undefined>(undefined);
+  const [error, setError] = useState<string | null>(null);
 
   const stages: Stage[] = [
     {
@@ -78,18 +80,14 @@ export default function GenerationProgress({ formData, onComplete }: GenerationP
     // Prevent body scroll when overlay is active
     document.body.style.overflow = 'hidden';
 
+    // Start game generation API call
+    generateGame();
+
     // Progress timer
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(progressInterval);
-          setShowConfetti(true);
-          setTimeout(() => {
-            setShowSuccess(true);
-          }, 500);
-          setTimeout(() => {
-            onComplete();
-          }, 4000);
           return 100;
         }
         return prev + 100 / 60; // 60 seconds total
@@ -107,7 +105,64 @@ export default function GenerationProgress({ formData, onComplete }: GenerationP
       clearInterval(progressInterval);
       clearInterval(factsInterval);
     };
-  }, [onComplete]);
+  }, []);
+
+  const generateGame = async () => {
+    try {
+      const response = await fetch('/api/generate-game', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          subject: formData.subject,
+          gradeLevel: formData.gradeLevel,
+          topic: formData.topic,
+          learningObjective: formData.learningObjective,
+          vocabularyContent: formData.vocabularyContent,
+          gameType: formData.gameType,
+          difficulty: formData.difficulty,
+          includeHints: formData.includeHints,
+          showProgressFeedback: formData.showProgressFeedback,
+          addEncouragingMessages: formData.addEncouragingMessages,
+          sketchAnalysis: formData.sketchAnalysis,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate game');
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        const game: GeneratedGame = {
+          gameCode: data.gameCode,
+          metadata: data.metadata,
+          title: `${formData.topic} - ${formData.gameType}`,
+        };
+        setGeneratedGame(game);
+
+        // Set progress to 100% if not already there
+        setProgress(100);
+
+        // Show success screen
+        setShowConfetti(true);
+        setTimeout(() => {
+          setShowSuccess(true);
+        }, 500);
+        setTimeout(() => {
+          onComplete(game);
+        }, 4000);
+      } else {
+        throw new Error(data.error || 'Game generation failed');
+      }
+    } catch (err) {
+      console.error('Error generating game:', err);
+      setError(err instanceof Error ? err.message : 'Failed to generate game');
+      setProgress(100); // Stop progress on error
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[100] bg-gradient-to-br from-primary-600 via-grass-500 to-sunny-500 flex items-center justify-center">
@@ -119,7 +174,22 @@ export default function GenerationProgress({ formData, onComplete }: GenerationP
         <div className="absolute bottom-20 right-20 w-28 h-28 bg-white opacity-10 rounded-full animate-bounce-slow"></div>
       </div>
 
-      {!showSuccess ? (
+      {error ? (
+        /* Error Screen */
+        <div className="relative z-10 max-w-2xl mx-auto px-6 text-center">
+          <div className="bg-white rounded-3xl p-8 shadow-2xl">
+            <div className="text-6xl mb-4">⚠️</div>
+            <h2 className="text-3xl font-bold text-red-600 mb-4">Generation Failed</h2>
+            <p className="text-lg text-primary-800 mb-6">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-primary-500 hover:bg-primary-600 text-white font-bold py-3 px-8 rounded-full transition-all duration-300"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      ) : !showSuccess ? (
         <div className="relative z-10 max-w-2xl mx-auto px-6 text-center">
           {/* Current Stage */}
           <div className="mb-10">

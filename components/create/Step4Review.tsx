@@ -1,16 +1,19 @@
 'use client';
 
 import React, { useState } from 'react';
-import { GameFormData, GAME_TYPES } from '@/types/game';
+import { GameFormData, GAME_TYPES, GeneratedGame } from '@/types/game';
 import GenerationProgress from './GenerationProgress';
+import GamePreview from './GamePreview';
 
 interface Step4ReviewProps {
   formData: GameFormData;
+  updateFormData: (data: Partial<GameFormData>) => void;
   onEdit: (step: number) => void;
 }
 
-export default function Step4Review({ formData, onEdit }: Step4ReviewProps) {
+export default function Step4Review({ formData, updateFormData, onEdit }: Step4ReviewProps) {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const gameType = GAME_TYPES.find((t) => t.id === formData.gameType);
 
@@ -18,9 +21,21 @@ export default function Step4Review({ formData, onEdit }: Step4ReviewProps) {
     setIsGenerating(true);
   };
 
-  const handleGenerationComplete = () => {
+  const handleGenerationComplete = (generatedGame?: GeneratedGame) => {
+    if (generatedGame) {
+      updateFormData({ generatedGame });
+      setShowPreview(true);
+    }
     setIsGenerating(false);
-    // Could navigate to game page or show dashboard here
+  };
+
+  const handleClosePreview = () => {
+    setShowPreview(false);
+  };
+
+  const handleShare = () => {
+    // TODO: Implement sharing functionality
+    alert('Sharing functionality coming soon!');
   };
 
   const difficultyEmoji = {
@@ -237,6 +252,15 @@ export default function Step4Review({ formData, onEdit }: Step4ReviewProps) {
         </div>
       </div>
     </div>
+
+    {/* Game Preview Modal */}
+    {showPreview && formData.generatedGame && (
+      <GamePreview
+        game={formData.generatedGame}
+        onClose={handleClosePreview}
+        onShare={handleShare}
+      />
+    )}
     </>
   );
 }

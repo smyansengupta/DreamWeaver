@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { GameFormData } from '@/types/game';
+import { GameFormData, SketchAnalysis } from '@/types/game';
+import SketchAnalysisPreview from './SketchAnalysisPreview';
+import SketchAnalysisEditModal from './SketchAnalysisEditModal';
 
 interface Step1UploadProps {
   formData: GameFormData;
@@ -10,6 +12,9 @@ interface Step1UploadProps {
 
 export default function Step1Upload({ formData, updateFormData }: Step1UploadProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const handleDragEnter = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -59,9 +64,53 @@ export default function Step1Upload({ formData, updateFormData }: Step1UploadPro
         updateFormData({
           image: file,
           imagePreview: e.target?.result as string,
+          sketchAnalysis: undefined,
+          analysisApproved: false,
         });
+        // Automatically analyze the sketch after upload
+        analyzeSketch(file);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const analyzeSketch = async (file: File) => {
+    setIsAnalyzing(true);
+    setAnalysisError(null);
+
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append('image', file);
+      formDataToSend.append('subject', formData.subject || '');
+      formDataToSend.append('gradeLevel', formData.gradeLevel || '');
+      formDataToSend.append('topic', formData.topic || '');
+
+      const response = await fetch('/api/analyze-sketch', {
+        method: 'POST',
+        body: formDataToSend,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to analyze sketch');
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.analysis) {
+        updateFormData({
+          sketchAnalysis: data.analysis,
+          analysisApproved: false,
+        });
+      } else {
+        throw new Error(data.error || 'Analysis failed');
+      }
+    } catch (error) {
+      console.error('Error analyzing sketch:', error);
+      setAnalysisError(
+        error instanceof Error ? error.message : 'Failed to analyze sketch. Please try again.'
+      );
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
@@ -69,7 +118,33 @@ export default function Step1Upload({ formData, updateFormData }: Step1UploadPro
     updateFormData({
       image: undefined,
       imagePreview: undefined,
+      sketchAnalysis: undefined,
+      analysisApproved: false,
     });
+    setAnalysisError(null);
+  };
+
+  const handleApproveAnalysis = () => {
+    updateFormData({
+      analysisApproved: true,
+    });
+  };
+
+  const handleEditAnalysis = () => {
+    setShowEditModal(true);
+  };
+
+  const handleSaveEditedAnalysis = (updatedAnalysis: SketchAnalysis) => {
+    updateFormData({
+      sketchAnalysis: updatedAnalysis,
+    });
+    setShowEditModal(false);
+  };
+
+  const handleAnalyzeAgain = () => {
+    if (formData.image) {
+      analyzeSketch(formData.image);
+    }
   };
 
   return (
@@ -151,7 +226,7 @@ export default function Step1Upload({ formData, updateFormData }: Step1UploadPro
           </div>
         </div>
       ) : (
-        <div className="relative">
+        <div className="relative space-y-6">
           {/* Image preview */}
           <div className="bg-white rounded-3xl shadow-xl overflow-hidden border-4 border-grass-400">
             <img
@@ -162,7 +237,7 @@ export default function Step1Upload({ formData, updateFormData }: Step1UploadPro
           </div>
 
           {/* Image info and actions */}
-          <div className="mt-6 flex items-center justify-between bg-grass-50 p-6 rounded-2xl">
+          <div className="flex items-center justify-between bg-grass-50 p-6 rounded-2xl">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-grass-500 rounded-full flex items-center justify-center">
                 <svg
@@ -194,6 +269,76 @@ export default function Step1Upload({ formData, updateFormData }: Step1UploadPro
               Change Image
             </button>
           </div>
+
+          {/* Analysis Loading */}
+          {isAnalyzing && (
+            <div className="bg-primary-100 rounded-3xl p-8 text-center border-2 border-primary-300">
+              <div className="inline-flex items-center gap-3 mb-4">
+                <svg
+                  className="animate-spin h-8 w-8 text-primary-600"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                <span className="text-2xl font-bold text-primary-800">Analyzing your sketch...</span>
+              </div>
+              <p className="text-primary-600">
+                I'm looking at your drawing to understand the game elements 🔍
+              </p>
+            </div>
+          )}
+
+          {/* Analysis Error */}
+          {analysisError && !isAnalyzing && (
+            <div className="bg-red-50 rounded-3xl p-6 border-2 border-red-300">
+              <div className="flex items-start gap-3">
+                <span className="text-3xl">⚠️</span>
+                <div className="flex-1">
+                  <p className="font-bold text-red-800 mb-2">Analysis Failed</p>
+                  <p className="text-red-700 mb-4">{analysisError}</p>
+                  <button
+                    onClick={handleAnalyzeAgain}
+                    className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-full transition-all"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Analysis Preview */}
+          {formData.sketchAnalysis && !isAnalyzing && (
+            <SketchAnalysisPreview
+              analysis={formData.sketchAnalysis}
+              onApprove={handleApproveAnalysis}
+              onEdit={handleEditAnalysis}
+              onAnalyzeAgain={handleAnalyzeAgain}
+            />
+          )}
+
+          {/* Edit Modal */}
+          {showEditModal && formData.sketchAnalysis && (
+            <SketchAnalysisEditModal
+              analysis={formData.sketchAnalysis}
+              onSave={handleSaveEditedAnalysis}
+              onCancel={() => setShowEditModal(false)}
+            />
+          )}
         </div>
       )}
 

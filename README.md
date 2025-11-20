@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # DreamWeaver
 
 **Turn Lesson Plans Into Learning Games in 60 Seconds**
@@ -110,3 +111,6 @@ DreamWeaver is designed to feel like a classroom tool, not a gaming platform. Th
 ## License
 
 Copyright © 2024 DreamWeaver. Making learning magical for elementary students everywhere.
+=======
+# DreamWeaver
+>>>>>>> 75175e0ed155120a29d617587234af259113e853
